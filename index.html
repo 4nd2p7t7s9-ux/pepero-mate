@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>빼빼로 메이트</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#ff7fb5;--pink-d:#e0438a;--pink-l:#ffd6e8;--ink:#5a1638;--cream:#fff6fb;--sub:#a0457a}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background-color:#ffc2dd;
+  background-image:radial-gradient(circle at 18px 18px,#fff 0 4px,transparent 5px),radial-gradient(circle at 58px 52px,#ff9cc8 0 6px,transparent 7px);
+  background-size:80px 80px;color:var(--ink);
+  font-family:"Noto Sans KR","Noto Sans TC",sans-serif;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.win{width:100%;max-width:440px;background:var(--cream);border:4px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.bar{background:linear-gradient(90deg,var(--pink),#ffa6d1);color:#fff;font-family:"Press Start 2P",monospace;font-size:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid var(--ink)}
+.bar button{background:#fff;color:var(--ink);border:2px solid var(--ink);font:inherit;font-size:8px;padding:4px 6px;cursor:pointer}
+.stage{position:relative;height:270px;overflow:hidden;border-bottom:4px solid var(--ink);background:linear-gradient(#ffe3f0,#ffc7e2)}
+.stage.bg-cafe{background:linear-gradient(#fff0c9,#ffd1e6)}
+.stage.bg-sea{background:linear-gradient(#cfeeff 0%,#ffd6ea 75%)}
+.stage.bg-night{background:linear-gradient(#d9c7ff,#ffc7e2)}
+.stage.rain::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;background:repeating-linear-gradient(100deg,transparent 0 14px,rgba(255,255,255,.9) 14px 16px);animation:fall .7s linear infinite}
+@keyframes fall{from{background-position:0 0}to{background-position:-16px 40px}}
+.sparkle{position:absolute;font-family:"Press Start 2P";font-size:12px;color:#fff;text-shadow:2px 2px 0 var(--pink-l);animation:blink 1.6s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.char{position:absolute;bottom:0;width:170px;height:227px;background-repeat:no-repeat;background-size:200% auto;mix-blend-mode:multiply;transition:transform .25s,opacity .25s,filter .25s}
+.char.hu{left:0;background-position:0 0}
+.char.mi{right:0;background-position:100% 0}
+.look-school .char,.look-casual .char{background-image:url("img/main.png")}
+#stageCg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:rgba(255,214,232,.96);z-index:2;border:0}
+.char.dim{opacity:.45;filter:saturate(.5)}
+.char.speak{transform:translateY(-6px)}
+.bub{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-family:"Press Start 2P";font-size:14px;color:var(--pink-d);text-shadow:1px 1px 0 #fff}
+.hud{position:relative;padding:10px 14px;border-bottom:4px solid var(--ink);background:#fff0f7}
+.hud-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;margin-bottom:6px}
+.hud-top .num{font-family:"Press Start 2P";font-size:10px;color:var(--pink-d)}
+.meter{display:flex;gap:4px;align-items:flex-end;height:38px}
+.meter svg{width:14px;height:36px;transition:opacity .3s,transform .3s}
+.meter svg.off{opacity:.22}
+.meter svg.on{transform:translateY(-2px)}
+.meter .cut{width:2px;height:40px;background:var(--pink-d);margin:0 4px;opacity:.6}
+.fx{position:absolute;right:14px;top:10px;font-family:"Press Start 2P";font-size:10px;color:var(--pink-d);opacity:0;transition:opacity .4s,transform .4s;pointer-events:none}
+.fx.show{opacity:1;transform:translateY(-8px)}
+.box{padding:14px 16px 12px;min-height:170px}
+.tag{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;padding:5px 8px;margin-bottom:10px}
+.tag .tk{font-family:"Press Start 2P";font-size:9px;font-weight:400}
+.tag .tz{font-size:10px;opacity:.85}
+.tag.os{background:#fff;color:var(--ink);border:2px dashed var(--ink)}
+.zh{display:block;font-size:10px;line-height:1.5;color:var(--sub);font-weight:400;min-height:1.5em;margin-top:6px;opacity:.9}
+.ko{display:block;font-size:19px;line-height:1.5;font-weight:900;color:var(--ink);word-break:keep-all}
+.ko.os{font-weight:700}
+.ko.os::before{content:"♥ ";color:var(--pink-d)}
+.choices{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.choice{display:block;width:100%;text-align:left;background:#fff;color:var(--ink);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:9px 12px;font:inherit;cursor:pointer}
+.choice:hover,.choice:focus-visible{background:var(--pink-l);outline:none;transform:translate(-1px,-1px)}
+.choice .k{display:block;font-size:16px;font-weight:700;color:var(--ink);line-height:1.45}
+.choice .z{display:block;font-size:10px;color:var(--sub);margin-top:4px;line-height:1.45;padding-top:4px;border-top:1px dashed #e7a9c8}
+.foot{padding:0 16px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hint{font-size:10px;color:var(--sub)}
+.btn{background:var(--pink);color:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font-family:"Press Start 2P";font-size:10px;padding:10px 12px;cursor:pointer}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.snd{background:#fff;color:var(--ink);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink);font-family:"Press Start 2P";font-size:8px;padding:4px 6px;cursor:pointer;margin-left:8px}
+.snd.off{background:var(--pink-l);color:var(--sub)}
+.bar-btns{display:flex;gap:6px;align-items:center}
+.bar-btns button.off{background:var(--pink-l);color:var(--sub)}
+/* 語言切換：只顯示選定的語言 */
+body.lang-ko .lz,body.lang-ko .zh,body.lang-ko .choice .z{display:none}
+body.lang-zh .lk,body.lang-zh .ko,body.lang-zh .choice .k{display:none}
+body.lang-zh .zh{display:block;font-size:19px;line-height:1.5;font-weight:900;color:var(--ink);margin-top:0;min-height:1.5em}
+body.lang-zh .choice .z{display:block;font-size:16px;font-weight:700;color:var(--ink);line-height:1.45;margin-top:0;padding-top:0;border-top:none}
+body.lang-zh .ko.os{display:none}
+body.lang-zh .zh.os{font-weight:700}
+body.lang-zh .zh.os::before{content:"♥ ";color:var(--pink-d)}
+#cg{position:fixed;inset:0;background:rgba(255,192,221,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;z-index:10;cursor:pointer}
+#cg img{max-width:100%;max-height:72vh;border:4px solid var(--ink);box-shadow:6px 6px 0 var(--ink);background:#fff}
+#cg .cgtxt{font-family:"Press Start 2P";font-size:9px;color:var(--ink);background:#fff;border:2px solid var(--ink);padding:6px 8px}
+[hidden]{display:none !important}
+@media (prefers-reduced-motion:reduce){.stage.rain::before,.sparkle{animation:none}}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span>🥢</span>
+    <div class="bar-btns">
+      <button id="sndBtn" type="button">♪ ON</button>
+      <button id="langBtn" type="button">KO</button>
+      <button id="menuBtn" type="button" hidden>MENU</button>
+    </div>
+  </div>
+
+  <div class="stage look-casual bg-cafe" id="stage">
+    <div class="sparkle" style="left:16px;top:14px">✦</div>
+    <div class="sparkle" style="right:20px;top:40px;animation-delay:.6s">✦</div>
+    <div class="char hu" id="hu"><span class="bub" id="hub"></span></div>
+    <div class="char mi" id="mi"><span class="bub" id="mib"></span></div>
+    <img id="stageCg" alt="" hidden>
+  </div>
+
+  <div class="hud">
+    <div class="hud-top">
+      <span><span class="lk">친밀도</span><span class="lz">親密值</span></span>
+      <span class="num"><span id="pepNum">0</span>/8</span>
+    </div>
+    <div class="meter" id="meter"></div>
+    <div class="fx" id="fx"></div>
+  </div>
+
+  <div class="box">
+    <div id="tag" class="tag"></div>
+    <span id="ko" class="ko"></span>
+    <span id="zh" class="zh"></span>
+    <div id="choices" class="choices" hidden></div>
+  </div>
+
+  <div class="foot">
+    <span class="hint" id="hint"></span>
+    <button id="next" class="btn" type="button">NEXT ▶</button>
+  </div>
+</div>
+
+<div id="cg" hidden>
+  <img id="cgimg" alt="">
+  <div class="cgtxt">TAP TO CONTINUE</div>
+</div>
+
+<script>
+// ============ helpers ============
+const $ = id => document.getElementById(id);
+const KISS  = 'img/kiss.png';   // 集滿 CG
+const ANGRY = 'img/angry.png';  // 0–3 根結局 CG
+const MID   = 'img/mid.png';    // 4–7 根結局 CG
+const clamp = n => Math.max(0, Math.min(8, n));
+
+const N  = (zh,ko) => ({s:'n',   zh, ko});       // 旁白
+const H  = (zh,ko) => ({s:'hu',  zh, ko});       // 후후 說話
+const M  = (zh,ko) => ({s:'mi',  zh, ko});       // 만재 說話
+const HO = (zh,ko) => ({s:'hos', zh, ko});       // 후후 內心
+const MO = (zh,ko) => ({s:'mos', zh, ko});       // 만재 內心
+const C  = (d,zh,ko,reply) => ({d, zh, ko, reply}); // 選項：d = 2 / 1 / 0 根
+
+// ============ 劇本 ============
+const STORIES = {
+  rain:{
+    label:{zh:'下雨', ko:'비'}, bg:'bg-night', rain:true,
+    scenes:[
+      {look:'school', lines:[
+        N('下午四點，突然下起大雨。學校只剩財財一個人。','오후 네 시, 갑자기 비가 쏟아졌다. 학교에 만재 혼자 남아 있다.'),
+        H('財財，你有傘嗎？','만재야, 우산 있어?'),
+        M('……沒有，沒關係。','……없어, 괜찮아.')],
+       choices:[
+        C(2,'「我們一起撐！我的傘很大！」','“같이 쓰자! 내 우산 엄청 커.”', [MO('(這個人怎麼總是先注意到我。)','(이 사람은 왜 늘 먼저 알아차리지.)')]),
+        C(1,'「傘給你，你先拿去。」','“우산 줄게, 먼저 가져가.”', [MO('(謝謝，可是你要怎麼辦。)','(고마워, 근데 너는 어떡하려고.)')]),
+        C(0,'「那我先走囉～」','“그럼 나 먼저 갈게~”', [MO('(就這樣走了，有點失落。)','(그냥 가 버리네. 조금 서운하다.)')])]},
+      {look:'school', lines:[
+        N('財財的傘太小，肩膀慢慢淋濕了。','만재의 우산이 너무 작아서 어깨가 조금씩 젖고 있다.'),
+        HO('(你的肩膀，全都濕了吧。)','(저 어깨, 다 젖었잖아.)')],
+       choices:[
+        C(2,'「傘往這邊傾！我沒關係！」','“우산 이쪽으로 기울여! 난 괜찮아!”', [MO('(自己淋濕還幫我擋雨，傻瓜)','(자기가 젖으면서 나를 가려 주다니, 바보같이.)')]),
+        C(1,'「肩膀濕了，靠近一點！」','“어깨 젖었어, 좀 더 가까이 와!”', [MO('(可以靠近一點嗎……)','(좀 더 가까이 가도 되는 걸까……)')]),
+        C(0,'「你的傘好小喔，哈哈。」','“우산 엄청 작다, 하하.”', [MO('(要買新的雨傘嗎？)','(새 우산 사야 하나?)')])]},
+      {look:'casual', lines:[
+        N('公車來了，財財先開口。','버스가 왔다. 만재가 먼저 입을 열었다.'),
+        M('我坐後面那班。','나 뒤에 오는 버스 탈래.'),
+        HO('(想一起走，卻說不出口。)','(같이 가고 싶은데 말을 못 하겠어.)')],
+       choices:[
+        C(2,'「那我也等後面那班，一起走。」','“그럼 나도 뒤에 오는 버스 기다릴게. 같이 가자.”', [MO('(說要一起等，心情好奇怪。)','(같이 기다려 준다니, 기분이 이상해.)')]),
+        C(1,'「嗯，那我等你的公車來！」','“응, 그럼 네 버스 올 때까지 기다릴게!”', [MO('(其實希望可以一起搭。)','(사실은 같이 탔으면 좋겠다.)')]),
+        C(0,'「那我自己去！」','“그럼 나 혼자 갈래!”', [MO('(回頭看了一眼，有點擔心。)','(뒤돌아보는 거 봤어. 조금 걱정된다.)')])]},
+      {look:'casual', lines:[
+        N('財財輕輕打了個噴嚏。','만재가 살짝 재채기를 했다.'),
+        M('……我不冷。','……안 추워.'),
+        H('不冷？鼻子都紅了耶。','안 춥다면서, 코 빨갛잖아.')],
+       choices:[
+        C(2,'「穿我的外套，會很暖。」','“내 외투 입어. 따뜻할 거야.”', [MO('(味道很好。)','(냄새 좋다.)')]),
+        C(1,'「要不要買熱可可？」','“따뜻한 코코아 사 줄까?”', [MO('(可可…… 其實我喜歡。)','(코코아… 사실 좋아하는데.)')]),
+        C(0,'「感冒了我會很無聊耶。」','“감기 걸리면 나 심심해지잖아.”', [MO('(這樣說，會讓我疑惑。)','(이렇게 말하면 헷갈리잖아.)')])]},
+      {look:'casual', lines:[
+        N('雨停了。','비가 그쳤다.'),
+        M('傘，明天還你。','우산, 내일 돌려줄게.')],
+       choices:[
+        C(2,'「下次下雨一起用吧。」','“다음에 비 오면 같이 쓰자.”', [MO('(下次一起用嗎……)','(다음에 같이 쓰자고……?)')]),
+        C(1,'「好，別忘了喔！」','“그래, 잊으면 안 돼!”', [MO('(怎麼可能忘。)','(잊을 리가 없잖아.)')]),
+        C(0,'「直接拿走也可以啊，很麻煩耶。」','“그냥 가져도 되는데, 귀찮잖아.”', [MO('(對不起)','(미안해.)')])]}
+    ],
+    endings:{
+      good:{lines:[N('那天之後，只要下雨，兩人總是共用同一把傘。','그날 이후로 비가 오면 두 사람은 늘 우산 하나를 같이 썼다.'), MO('(下次下雨也一起淋吧。)','(다음 비도 같이 맞자.)')]},
+      mid:{lines:[M('傘還沒還。明天放在書桌上吧。','우산 아직 못 돌려줬어. 내일 책상 위에 올려 둘게.')]},
+      low:{lines:[N('雨停了，兩人各自撐著傘走了。','비가 그쳤고, 두 사람은 각자 우산을 쓰고 걸어갔다.'), MO('(怎麼辦)','(어떡하지.)')]}
+    }
+  },
+
+  pork:{
+    label:{zh:'五花肉', ko:'삼겹살'}, bg:'bg-cafe',
+    scenes:[
+      {look:'casual', lines:[
+        N('烤肉店，熏熏把五花肉烤得金黃。財財只夾生菜，不碰肉。','고깃집에서 후후가 삼겹살을 노릇하게 구웠다. 만재는 상추만 집고 고기에는 손대지 않았다.'),
+        H('財財，五花肉要包生菜才好吃！','만재야, 삼겹살은 상추에 싸 먹어야 맛있어!'),
+        MO('(？)','(?)')],
+       choices:[
+        C(2,'「我幫你包！張嘴！」','“내가 싸 줄게! 입 벌려!”', [MO('(不先說一聲就這樣，會嚇到的。不過……很好吃。)','(말도 없이 이러면 놀라잖아. 근데… 맛있다.)')]),
+        C(1,'「生菜要不要一起包？」','“상추 같이 싸 줄까?”', [MO('(……可以拜託你嗎。)','(……부탁해도 될까.)')]),
+        C(0,'「要吃肉啦，笨蛋。」','“고기 좀 먹어, 바보야.”', [MO('(笨蛋？)','(바보라니…)')])]},
+      {look:'casual', lines:[
+        N('有一片肉烤焦了，黑黑的。','고기 한 점이 새까맣게 탔다.'),
+        N('財財拿走了這一塊。','만재가 그 조각을 가져갔다.')],
+       choices:[
+        C(2,'「焦的不健康，丟掉吧！」','“탄 건 몸에 안 좋아. 버리자!”', [MO('(謝謝你)','(고마워.)')]),
+        C(1,'「這塊我吃！」','“이건 내가 먹을게!”', [MO('(吃焦的，肚子會痛吧。)','(탄 걸 먹으면 배 아플 텐데.)')]),
+        C(0,'「這是財財烤的吧？」','“이거 만재가 구운 거지?”', [MO('(……是我烤的沒錯。)','(……맞아, 내가 구웠어.)')])]},
+      {look:'casual', lines:[
+        N('最後一片肉。財財拿起夾子，又輕輕放進熏熏的碗裡。','마지막 고기 한 점. 만재가 집게를 들었다가 후후의 그릇에 살며시 옮겨 놓았다.'),
+        HO('(……這是要給我的嗎？)','(……이거 나 주는 거야?)')],
+       choices:[
+        C(2,'「你也要吃，我幫你烤！」','“너도 먹어. 내가 구워 줄게!”', [MO('(一起吃，很好。)','(같이 먹으니까 좋다.)')]),
+        C(1,'「為什麼給我？」','“왜 나 줘?”', [MO('(五花肉你的最愛。)','(삼겹살은 네가 제일 좋아하잖아.)')]),
+        C(0,'「肉我全部要吃掉！」','“고기는 내가 다 먹을 거야!”', [MO('(有點可愛……)','(좀 귀엽기도 하고……)')])]},
+      {look:'casual', lines:[
+        N('財財的耳朵紅紅的。','만재의 귀가 빨갛다.'),
+        M('……是火太熱了。','……불 때문에 더워서 그래.')],
+       choices:[
+        C(2,'「對啊，是火的關係。我也紅了。」','“응, 불 때문이지. 나도 빨개졌어.”', [MO('(我看看。)','(어디 보자.)')]),
+        C(1,'「耳朵紅紅的，都被看到了。」','“귀가 빨간 거 다 보여.”', [MO('(……被發現了。)','(……들켰네.)')]),
+        C(0,'「你的臉像番茄耶！」','“너 얼굴이 토마토 같아!”', [MO('(竟然說我像番茄。)','(나더러 토마토 같다니.)')])]},
+      {look:'casual', lines:[
+        N('結帳時，財財先拿出了錢包。','계산할 때, 만재가 먼저 지갑을 꺼냈다.'),
+        M('……這次我請。','……이번엔 내가 살게.')],
+       choices:[
+        C(2,'「那下次我請，約好了！」','“그럼 다음엔 내가 살게. 약속!”', [MO('(下次的約定又多了一個。)','(다음 약속이 하나 더 생겼다.)')]),
+        C(1,'「謝謝，我吃得很開心。」','“고마워, 잘 먹었어.”', [MO('(我就想聽這句話。)','(그 말이 듣고 싶었어.)')]),
+        C(0,'「不行，我們各付一半！」','“안 돼, 반반 내자!”', [MO('(但我不想。)','(근데 난 그러고 싶지 않아.)')])]}
+    ],
+    endings:{
+      good:{lines:[N('之後去烤肉店，總是把生菜包好，分著吃。','그 뒤로 고깃집에 가면 늘 상추에 고기를 싸서 나눠 먹었다.'), MO('(這個味道，想一直記住。)','(이 맛, 계속 기억하고 싶다.)')]},
+      mid:{lines:[N('財財經過烤肉店時，總會想起那天。','만재는 고깃집 앞을 지날 때마다 그날이 떠오른다.')]},
+      low:{lines:[N('餐廳門口，兩人說了「下次見」就分開了。','식당 문 앞에서 두 사람은 “다음에 보자”고 하고 헤어졌다.'), MO('(不知道下次是什麼時候。)','(다음이 언제일지 모르겠지만.)')]}
+    }
+  },
+
+  practice:{
+    label:{zh:'練習', ko:'연습'}, bg:'bg-night',
+    scenes:[
+      {look:'casual', lines:[
+        N('練習室門口。財財擦著汗，看見熏熏走過來。','연습실 문 앞. 만재가 땀을 닦으며 후후가 오는 걸 봤다.'),
+        M('……來了？','……왔어?')],
+       choices:[
+        C(2,'「今天練了幾個小時？」','“오늘 몇 시간 연습했어?”', [MO('(這是在擔心我嗎？)','(걱정해 주는 거야?)')]),
+        C(1,'「今天也好帥！」','“오늘도 멋있었어!”', [MO('(有點害羞。)','(조금 부끄럽다.)')]),
+        C(0,'「我坐這裡等你。」','“나 여기 앉아서 기다릴게.”', [MO('(那我繼續練了。)','(그럼 나는 계속 연습해야겠다.)')])]},
+      {look:'casual', lines:[
+        N('財財踩錯了一步，身體僵硬了起來。','만재가 스텝을 틀려서 몸이 굳었다.'),
+        HO('(……沒事吧。)','(……괜찮을까.)')],
+       choices:[
+        C(2,'「先喝口水，慢慢來也沒關係。」','“물부터 마셔. 천천히 해도 괜찮아.”', [MO('(又在照顧我，謝謝。)','(또 나를 챙겨 주네, 고마워.)')]),
+        C(1,'「要再試一次嗎？」','“한 번 더 해 볼래?”', [MO('(嗯，我也想再試一次。)','(응, 나도 한 번 더 해 보고 싶어.)')]),
+        C(0,'「比剛剛還差耶。」','“아까보다 못했는데?”', [MO('(我知道。)','(알고 있어.)')])]},
+      {look:'casual', lines:[
+        N('熏熏跟著跳，結果跌倒了！財財忍住笑，把頭轉開。','후후가 따라 하다가 넘어졌다! 만재가 웃음을 참으며 고개를 돌린다.')],
+       choices:[
+        C(2,'「笑吧，我喜歡你笑的樣子。」','“웃어도 돼. 너 웃는 모습 좋아.”', [MO('(忍得好辛苦。)','(참느라 너무 힘들었는데.)')]),
+        C(1,'「財財，你笑了吧？」','“만재, 너 웃었지?”', [MO('(被發現了。)','(들켰네.)')]),
+        C(0,'「不准笑！」','“웃지 마!”', [MO('(也不用這麼生氣吧。)','(그렇게 화낼 일은 아니잖아.)')])]},
+      {look:'casual', lines:[
+        N('財財輕輕揉著腳踝。','만재가 발목을 살짝 주무른다.'),
+        M('……沒事。','……괜찮아.')],
+       choices:[
+        C(2,'「先坐下，我幫你貼藥布。」','“잠깐 앉아. 파스 붙여 줄게.”', [MO('(被照顧，很好。)','(챙겨 주니까 좋다.)')]),
+        C(1,'「很痛嗎？」','“많이 아파?”', [MO('(有點痛。)','(조금 아파.)')]),
+        C(0,'「忍一下，還要練呢。」','“참아, 아직 더 연습해야 하잖아.”', [MO('(說得太冷淡了，但也沒錯。)','(너무 차갑게 말하네. 그래도 틀린 말은 아니고.)')])]},
+      {look:'casual', lines:[
+        N('練習結束。財財背上包包，小心翼翼地開口。','연습이 끝났다. 만재가 가방을 메고 조심스럽게 입을 연다.'),
+        M('……明天還練。你來嗎？','……내일도 연습해. 올 거야?')],
+       choices:[
+        C(2,'「當然！我會帶水和毛巾去。」','“당연하지! 물이랑 수건 챙겨 갈게.”', [MO('(要記得你說過要帶水和毛巾。)','(물이랑 수건 챙겨 온다고 한 거, 기억해 둬야지.)')]),
+        C(1,'「時間對的話就去。」','“시간 맞으면 갈게.”', [MO('(真希望你能來。)','(꼭 와 줬으면 좋겠다.)')]),
+        C(0,'「明天我很忙。」','“내일은 바빠.”', [MO('(這樣啊，有點可惜。)','(그렇구나, 조금 아쉽다.)')])]}
+    ],
+    endings:{
+      good:{lines:[N('練習結束後，總有兩個水瓶。一個是財財的，一個是熏熏帶來的。','연습이 끝나면 늘 물병이 두 개였다. 하나는 만재 것, 하나는 후후가 챙겨 온 것.'), MO('(想每天都待在一起。)','(매일 같이 있고 싶다.)')]},
+      mid:{lines:[N('熏熏在練習室外面等。財財偶爾隔著窗戶看他。','후후는 연습실 밖에서 기다린다. 만재는 가끔 창문 너머로 그 모습을 본다.')]},
+      low:{lines:[N('兩人在練習室門口，簡短地道了別。','두 사람은 연습실 문 앞에서 짧게 인사를 나눴다.'), MO('(下次能好好說就好了。)','(다음엔 더 잘 말할 수 있으면 좋겠다.)')]}
+    }
+  },
+
+  soccer:{
+    label:{zh:'足球', ko:'축구'}, bg:'bg-sea',
+    scenes:[
+      {look:'casual', lines:[
+        N('週末下午，財財窩在沙發上看足球。熏熏想坐過去，又停住了。','주말 오후, 만재가 소파에 기대어 축구를 보고 있다. 후후가 옆에 앉으려다 멈춘다.'),
+        HO('(旁邊的位子空著……對吧？)','(옆자리 비어 있는 거… 맞지?)')],
+       choices:[
+        C(2,'「可以一起看嗎？我帶了零食。」','“같이 봐도 돼? 간식도 가져왔어.”', [MO('(你發現我空著的位子了。)','(내가 비워 둔 자리 알아챘구나.)')]),
+        C(1,'「是什麼比賽？」','“무슨 경기야?”', [MO('(加油。)','(파이팅.)')]),
+        C(0,'「足球真的有那麼好看嗎？」','“축구가 그렇게 재밌어?”', [MO('(要怎麼解釋呢？)','(어떻게 설명하면 좋을까?)')])]},
+      {look:'casual', lines:[
+        N('進球了！財財的手舉到一半，又看了熏熏一眼，停在半空。','골이 들어갔다! 만재의 손이 반쯤 올라갔다가, 후후를 한 번 보고는 허공에서 멈춘다.')],
+       choices:[
+        C(2,'「進了！來擊掌！」','“골이다! 하이파이브!”', [MO('(手。)','(손.)')]),
+        C(1,'「哇，好帥！」','“우와, 멋지다!”', [MO('(對啊對啊。)','(맞아, 맞아.)')]),
+        C(0,'「對方比較厲害耶。」','“상대팀이 더 잘하네.”', [MO('(不該這樣說的。)','(그렇게 말하면 안 되는데.)')])]},
+      {look:'casual', lines:[
+        N('財財支持的隊輸了。他安靜地把遙控器放下。','만재가 응원하던 팀이 졌다. 만재는 조용히 리모컨을 내려놓는다.')],
+       choices:[
+        C(2,'「下次一起加油，我會好好應援！」','“다음엔 같이 응원하자, 내가 열심히 응원할게!”', [MO('(這句話給了我力量。)','(이 말이 힘이 된다.)')]),
+        C(1,'「沒關係，下次一定會贏。」','“괜찮아, 다음엔 꼭 이길 거야.”', [MO('(下次一定要贏。)','(다음엔 꼭 이겨야지.)')]),
+        C(0,'「哎，我就知道會輸。」','“에이, 질 줄 알았어.”', [MO('(現在不想聽這句話。)','(지금은 그 말 듣기 싫어.)')])]},
+      {look:'casual', lines:[
+        N('財財盯著手機上的球衣頁面，又立刻關掉。','만재가 휴대폰으로 유니폼 페이지를 보다가 얼른 꺼 버린다.'),
+        N('熏熏看見了。','후후가 봤다.')],
+       choices:[
+        C(2,'「我陪你挑，8號怎麼樣？」','“같이 골라 줄게. 8번 어때?”', [MO('(你知道我喜歡的數字。)','(내가 좋아하는 숫자인 거 알고 있었구나.)')]),
+        C(1,'「想買就買啊。」','“사고 싶으면 사.”', [MO('(想買，但有點不好意思。)','(사고 싶긴 한데 조금 부끄럽다.)')]),
+        C(0,'「應該不是球衣吧？」','“유니폼 아닌 것 같은데?”', [MO('(被看見了，還說不是，怎麼辦。)','(들켰는데 아니라고 하면 어떡해.)')])]},
+      {look:'casual', lines:[
+        N('財財小心地開口。','만재가 조심스럽게 입을 연다.'),
+        M('……下次比賽，要一起看嗎？','……다음 경기, 같이 볼래?')],
+       choices:[
+        C(2,'「當然！零食和飲料我來準備。」','“당연하지! 간식이랑 음료는 내가 준비할게.”', [MO('(一起看就很好了。)','(같이 보는 것만으로도 좋은데.)')]),
+        C(1,'「好啊。」','“좋아.”', [MO('(已經開始期待了。)','(벌써부터 기대된다.)')]),
+        C(0,'「我考慮一下。」','“생각 좀 해 볼게.”', [MO('(是不想的意思嗎……)','(싫다는 뜻인가……)')])]}
+    ],
+    endings:{
+      good:{lines:[N('下次比賽那天，沙發上放著兩包零食，還有8號球衣。','다음 경기 날, 소파 위에는 과자 두 봉지와 8번 유니폼이 놓여 있었다.'), MO('(謝謝你，真的。)','(고마워, 정말로.)')]},
+      mid:{lines:[N('財財每次都還會把旁邊的位子空著。','만재는 그래도 매번 옆자리를 비워 둔다.')]},
+      low:{lines:[N('比賽結束，兩人各自回家了。','경기가 끝나고, 두 사람은 각자 집으로 돌아갔다.'), MO('(下次我先開口吧。)','(다음엔 내가 먼저 말해 볼까.)')]}
+    }
+  }
+};
+
+// ============ state ============
+let key=null, si=0, lines=[], li=0, phase='menu', pep=0, cgCb=null, endDone=false;
+
+// ============ rendering ============
+function renderMeter(){
+  const slots = Array.from({length:10},(_,i)=>{
+    const on = i < pep;
+    const svg = `<svg viewBox="0 0 14 36" class="${on?'on':'off'}" aria-hidden="true">
+      <rect x="3" y="0" width="8" height="36" rx="2" fill="#f3d19c" stroke="#5a1638" stroke-width="1.5"/>
+      <rect x="3" y="0" width="8" height="12" rx="2" fill="#6b3a22" stroke="#5a1638" stroke-width="1.5"/></svg>`;
+    return i===8 ? `<span class="cut"></span>${svg}` : svg;
+  });
+  $('meter').innerHTML = slots.join('');
+  $('pepNum').textContent = pep;
+  $('hint').innerHTML = pep>=8 ? '<span class="lk">가득 찼어!</span><span class="lz">集滿！</span>' : '';
+}
+function flash(text){
+  const f=$('fx'); f.textContent=text; f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+function setSpeaker(s){
+  $('hu').classList.toggle('dim', !['hu','hos','n'].includes(s));
+  $('mi').classList.toggle('dim', !['mi','mos','n'].includes(s));
+  $('hu').classList.toggle('speak', s==='hu'||s==='hos');
+  $('mi').classList.toggle('speak', s==='mi'||s==='mos');
+}
+function setBubble(s){
+  $('hub').textContent = (s==='hos') ? '♥' : '';
+  $('mib').textContent = (s==='mos') ? '♥' : '';
+}
+function setText(zh, ko, os){
+  $('zh').textContent = zh;
+  $('ko').textContent = ko;
+  $('ko').className = os ? 'ko os' : 'ko';
+}
+function drawLine(L){
+  const tag = $('tag');
+  if(L.s==='hu'){ tag.className='tag'; tag.innerHTML='<b class="tk lk">후후</b><span class="tz lz">熏熏</span>'; }
+  else if(L.s==='mi'){ tag.className='tag'; tag.innerHTML='<b class="tk lk">만재</b><span class="tz lz">財財</span>'; }
+  else if(L.s==='hos'){ tag.className='tag os'; tag.innerHTML='<b class="tk lk">후후 OS</b><span class="tz lz">內心</span>'; }
+  else if(L.s==='mos'){ tag.className='tag os'; tag.innerHTML='<b class="tk lk">만재 OS</b><b class="tk lz">OS</b>'; }
+  else { tag.className='tag'; tag.innerHTML='<b class="tk">NARRATION</b>'; }
+  setText(L.zh, L.ko, L.s==='hos'||L.s==='mos');
+  setSpeaker(L.s); setBubble(L.s);
+  $('choices').hidden = true;
+  $('next').hidden = false;
+  $('next').textContent = 'NEXT ▶';
+}
+function showChoices(list){
+  const isLast = si === STORIES[key].scenes.length - 1;
+  const tag=$('tag');
+  if(isLast){
+    tag.className='tag'; tag.innerHTML='<b class="tk">LAST</b>';
+    setText('最後一題！熏熏要怎麼做？','마지막 질문! 후후는 어떻게 할까?', false);
+  } else {
+    tag.className='tag'; tag.innerHTML='<b class="tk">CHOOSE</b>';
+    setText('熏熏要怎麼做？','후후는 어떻게 할까?', false);
+  }
+  setSpeaker('hu'); setBubble('');
+  $('next').hidden = true;
+  const wrap=$('choices'); wrap.innerHTML='';
+  const order = list.slice();
+  for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+  order.forEach(item=>{
+    const b=document.createElement('button');
+    b.className='choice'; b.type='button';
+    b.innerHTML = `<span class="k">${item.ko}</span><span class="z">${item.zh}</span>`;
+    b.onclick = () => pick(item);
+    wrap.appendChild(b);
+  });
+  wrap.hidden=false;
+}
+function showCG(src, cb){
+  $('cgimg').src = src;
+  $('cg').hidden = false;
+  cgCb = cb;
+}
+$('cg').onclick = () => {
+  $('cg').hidden = true;
+  const cb = cgCb; cgCb = null;
+  if(cb) cb();
+};
+
+// ============ flow ============
+// ============ BGM ============
+const bgm = new Audio('audio/bgm.mp3');
+bgm.loop = true; bgm.volume = 0.35;
+let musicOn = true;
+function playBgm(){ if(musicOn && bgm.paused) bgm.play().catch(()=>{}); }
+function renderSnd(){
+  const b=$('sndBtn'); b.textContent = musicOn ? '♪ ON' : '♪ OFF';
+  b.classList.toggle('off', !musicOn);
+}
+function toggleSound(){
+  musicOn = !musicOn;
+  if(musicOn) playBgm(); else bgm.pause();
+  renderSnd();
+}
+// 瀏覽器需要使用者操作後才能播放音樂，所以第一次點畫面時開始播
+document.addEventListener('pointerdown', playBgm);
+$('sndBtn').addEventListener('click', e => { e.stopPropagation(); toggleSound(); });
+renderSnd();
+
+// ============ 語言切換 ============
+let LANG = 'ko';
+function renderLang(){
+  document.body.className = 'lang-' + LANG;
+  $('langBtn').textContent = LANG === 'ko' ? 'KO' : '中';
+}
+$('langBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  LANG = LANG === 'ko' ? 'zh' : 'ko';
+  renderLang();
+});
+renderLang();
+
+function showMenu(){
+  key=null; phase='menu'; endDone=false;
+  $('stageCg').hidden = true;
+  $('stage').className='stage look-casual bg-cafe';
+  setSpeaker('n'); setBubble('');
+  $('menuBtn').hidden = true;
+  $('next').hidden = true;
+  $('hint').textContent = '';
+  const tag=$('tag'); tag.className='tag'; tag.innerHTML='<b class="tk">MENU</b>';
+  setText('選一個情境', '상황을 고르세요', false);
+  const wrap=$('choices'); wrap.innerHTML='';
+  Object.entries(STORIES).forEach(([k,st])=>{
+    const b=document.createElement('button');
+    b.className='choice'; b.type='button';
+    b.innerHTML = `<span class="k">${st.label.ko}</span><span class="z">${st.label.zh}</span>`;
+    b.onclick = () => startStory(k);
+    wrap.appendChild(b);
+  });
+  wrap.hidden=false;
+}
+function startStory(k){
+  key=k; pep=0; si=0;
+  renderMeter();
+  $('menuBtn').hidden = false;
+  startScene();
+}
+function startScene(){
+  $('stageCg').hidden = true;
+  const st = STORIES[key];
+  const sc = st.scenes[si];
+  $('stage').className = `stage look-${sc.look} ${st.bg||''} ${st.rain?'rain':''}`;
+  lines = sc.lines; li=0; phase='lines';
+  show();
+}
+function pick(c){
+  $('choices').hidden = true;
+  pep = clamp(pep + c.d);
+  renderMeter();
+  lines = c.reply; li=0; phase='reply'; show();
+}
+function finish(){
+  $('stageCg').hidden = true;
+  const st = STORIES[key];
+  const kind = pep>=8 ? 'good' : pep>=4 ? 'mid' : 'low';
+  const E = st.endings[kind];
+  const go = () => { lines = E.lines; li=0; phase='end'; show(); };
+  if(kind==='good'){ showCG(KISS, go); }
+  else if(kind==='mid'){ showCG(MID, go); }
+  else { showCG(ANGRY, go); }
+}
+function showEndControls(){
+  endDone = true;
+  $('next').hidden = false;
+  $('next').textContent = 'MENU ▶';
+  $('hint').innerHTML = `<span class="lk">친밀도 ${pep}/8</span><span class="lz">親密值 ${pep}/8</span>`;
+  setBubble('');
+  $('choices').hidden = true;
+}
+function show(){
+  if(phase==='menu') return;
+  const st = STORIES[key];
+  const sc = st.scenes[si];
+
+  if(phase==='lines'){
+    if(li < lines.length){ drawLine(lines[li]); return; }
+    if(sc.choices){ phase='choose'; showChoices(sc.choices); return; }
+  }
+  if(phase==='reply'){
+    if(li < lines.length){ drawLine(lines[li]); return; }
+    si++;
+    if(si < st.scenes.length){ startScene(); return; }
+    finish(); return;
+  }
+  if(phase==='end'){
+    if(li < lines.length){ drawLine(lines[li]); return; }
+    showEndControls(); return;
+  }
+}
+$('next').onclick = () => {
+  if(endDone){ showMenu(); return; }
+  if(phase==='lines' || phase==='reply' || phase==='end'){ li++; show(); }
+};
+$('menuBtn').onclick = () => { renderMeter(); showMenu(); };
+
+renderMeter();
+showMenu();
+</script>
+</body>
+</html>
