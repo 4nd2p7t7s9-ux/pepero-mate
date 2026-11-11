@@ -29,8 +29,9 @@ body{
 .half{position:absolute;top:0;height:910px;mix-blend-mode:multiply;transition:transform .28s cubic-bezier(.3,1.4,.5,1),opacity .5s}
 #left{left:0;width:745px}
 #right{left:745px;width:715px}
-#kiss{position:absolute;left:-40px;top:-50px;width:1536px;mix-blend-mode:multiply;opacity:0;transition:opacity .5s}
-.scene.done #kiss{opacity:1}
+#kiss,#secret{position:absolute;left:-40px;top:-50px;width:1536px;mix-blend-mode:multiply;opacity:0;transition:opacity .5s}
+.scene.done:not(.secret) #kiss{opacity:1}
+.scene.done.secret #secret{opacity:1}
 .scene.done .half,.scene.done #bridge{opacity:0}
 #bridge::after{content:"";position:absolute;right:0;top:3px;bottom:4px;width:34px;background:#e9c58f}
 #bridge{position:absolute;top:617px;height:24px;border-radius:6px;overflow:hidden;background:linear-gradient(var(--choco-d) 0 3px,#6f4d47 3px 11px,var(--choco) 11px 20px,var(--choco-d) 20px);transition:left .28s cubic-bezier(.3,1.4,.5,1),width .28s cubic-bezier(.3,1.4,.5,1)}
@@ -88,6 +89,7 @@ body.lang-zh .lk{display:none}
       <img class="half" id="right" src="img/right.png" alt="" draggable="false">
       <div id="bridge"></div>
       <img id="kiss" src="img/kiss.png" alt="" draggable="false">
+      <img id="secret" src="img/secret.png" alt="" draggable="false">
     </div>
     <div class="pop" id="pop"></div>
   </div>
@@ -141,11 +143,12 @@ const LINES = [
 const WHO = { hu: L('후후 OS', '熏熏 內心'), mi: L('만재 OS', '財財 內心') };
 
 // ---------- state ----------
+let perfects = 0, secret = false;
 let mode = 'title', bites = 0, pos = 0, dir = 1, zone = { c: .5, w: .34 }, last = 0, best = null;
 try { const b = localStorage.getItem('pepero-bite-best'); if (b !== null) best = +b; } catch (e) {}
 
 const off = () => OFF_START + (OFF_END - OFF_START) * Math.min(1, bites / (BITES - 1));
-const cm = () => (CM_END + (CM_START - CM_END) * (1 - bites / BITES)).toFixed(1);
+const cm = () => secret ? '0.0' : (CM_END + (CM_START - CM_END) * (1 - bites / BITES)).toFixed(1);
 const sweep = () => 1.45 - 0.85 * (bites / (BITES - 1));   // 指針跑一趟的秒數，越來越快
 
 // ---------- rendering ----------
@@ -162,6 +165,7 @@ function renderScene() {
   b.style.left = (637 - o) + 'px';
   b.style.width = (228 + 2 * o) + 'px';
   $('scene').classList.toggle('done', bites >= BITES);
+  $('scene').classList.toggle('secret', secret);
   $('cm').textContent = cm();
 }
 function renderZone() {
@@ -186,6 +190,7 @@ function hearts(n) {
   }, i * 110);
 }
 function rank() {
+  if (secret) return L('쉿, 둘만의 비밀 ♥', '噓，兩個人的秘密 ♥');
   if (bites >= BITES) return L('빼빼로 메이트 ♥', 'Pepero Mate ♥');
   if (bites >= 8) return L('거의 다 왔는데!', '就差一點點！');
   if (bites >= 4) return L('썸 타는 중', '曖昧中');
@@ -193,7 +198,7 @@ function rank() {
 }
 
 function showTitle() {
-  mode = 'title'; bites = 0; pos = 0;
+  mode = 'title'; bites = 0; pos = 0; perfects = 0; secret = false;
   $('bridge').classList.remove('snap'); renderScene(); newZone();
   $('box').innerHTML = `<div class="tag plain">HOW TO</div>
     <div class="line">${L('타이밍 맞춰 한 입씩!', '抓準時機，一口一口咬！')}</div>
@@ -202,7 +207,7 @@ function showTitle() {
   $('hint').innerHTML = best !== null ? L(`최고 기록 ${best.toFixed(1)}cm`, `最佳紀錄 ${best.toFixed(1)}cm`) : '';
 }
 function start() {
-  mode = 'play'; bites = 0; pos = 0; dir = 1;
+  mode = 'play'; bites = 0; pos = 0; dir = 1; perfects = 0; secret = false;
   $('bridge').classList.remove('snap'); renderScene(); newZone();
   $('box').innerHTML = `<div class="tag plain">READY</div><div class="line">${L('두근두근……', '撲通撲通……')}</div>`;
   $('act').innerHTML = L('냠!', '咬！');
@@ -212,10 +217,10 @@ function finish(win) {
   mode = 'over';
   const v = +cm();
   if (best === null || v < best) { best = v; try { localStorage.setItem('pepero-bite-best', String(v)); } catch (e) {} }
-  $('box').innerHTML = `<div class="tag plain">${win ? 'CLEAR' : 'RESULT'}</div>
+  $('box').innerHTML = `<div class="tag plain">${secret ? 'SECRET' : win ? 'CLEAR' : 'RESULT'}</div>
     <div class="big">${v.toFixed(1)}<small>cm</small></div>
     <div class="line">${rank()}</div>
-    <div class="sub">${win ? L('끝까지 다 먹었어요!', '成功吃到最後了！') : L(`${bites}입 성공. 다시 도전해 볼까요?`, `成功咬了 ${bites} 口。要再挑戰一次嗎？`)}</div>`;
+    <div class="sub">${secret ? L('전부 PERFECT! 숨겨진 엔딩을 찾았어요.', '全部 PERFECT！你找到隱藏結局了。') : win ? L('끝까지 다 먹었어요! 전부 PERFECT라면……?', '成功吃到最後了！如果全部 PERFECT 的話……？') : L(`${bites}입 성공. 다시 도전해 볼까요?`, `成功咬了 ${bites} 口。要再挑戰一次嗎？`)}</div>`;
   $('act').innerHTML = 'RETRY';
   $('hint').innerHTML = L(`최고 기록 ${best.toFixed(1)}cm`, `最佳紀錄 ${best.toFixed(1)}cm`);
 }
@@ -227,12 +232,14 @@ function bite() {
   if (d <= zone.w / 2) {
     const perfect = d <= zone.w / 6;
     bites++;
+    if (perfect) perfects++;
+    secret = bites >= BITES && perfects === BITES;
     renderScene();
     pop(perfect ? 'PERFECT ♥' : 'NICE!');
     if (perfect) hearts(2);
     const [who, ko, zh] = LINES[bites - 1];
     $('box').innerHTML = `<div class="tag">${WHO[who]}</div><div class="line">${L(ko, zh)}</div>`;
-    if (bites >= BITES) { mode = 'wait'; hearts(12); setTimeout(() => finish(true), 1300); }
+    if (bites >= BITES) { mode = 'wait'; hearts(secret ? 24 : 12); setTimeout(() => finish(true), 1300); }
     else newZone();
   } else {
     mode = 'wait';
