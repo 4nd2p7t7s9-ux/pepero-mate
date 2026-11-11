@@ -97,7 +97,7 @@ body.lang-zh .lk{display:none}
   <div class="hud">
     <div class="hud-top">
       <span><span class="lk">남은 빼빼로</span><span class="lz">剩下的 pepero</span></span>
-      <span class="num"><span id="cm">13.0</span>cm</span>
+      <span class="num"><span id="lives" style="color:#e0245e;margin-right:10px;font-family:sans-serif;font-size:15px"></span><span id="cm">13.0</span>cm</span>
     </div>
     <div class="track" id="track">
       <div class="zone" id="zone"><i></i></div>
@@ -144,6 +144,8 @@ const WHO = { hu: L('후후 OS', '熏熏 內心'), mi: L('만재 OS', '財財 �
 
 // ---------- state ----------
 let perfects = 0, secret = false;
+const LIVES = 2;           // 可以復活幾次
+let lives = LIVES;
 let mode = 'title', bites = 0, pos = 0, dir = 1, zone = { c: .5, w: .34 }, last = 0, best = null;
 try { const b = localStorage.getItem('pepero-bite-best'); if (b !== null) best = +b; } catch (e) {}
 
@@ -167,6 +169,7 @@ function renderScene() {
   $('scene').classList.toggle('done', bites >= BITES);
   $('scene').classList.toggle('secret', secret);
   $('cm').textContent = cm();
+  $('lives').textContent = '♥'.repeat(lives) + '♡'.repeat(LIVES - lives);
 }
 function renderZone() {
   $('zone').style.left = ((zone.c - zone.w / 2) * 100) + '%';
@@ -198,16 +201,16 @@ function rank() {
 }
 
 function showTitle() {
-  mode = 'title'; bites = 0; pos = 0; perfects = 0; secret = false;
+  mode = 'title'; bites = 0; pos = 0; perfects = 0; secret = false; lives = LIVES;
   $('bridge').classList.remove('snap'); renderScene(); newZone();
   $('box').innerHTML = `<div class="tag plain">HOW TO</div>
     <div class="line">${L('타이밍 맞춰 한 입씩!', '抓準時機，一口一口咬！')}</div>
-    <div class="sub">${L('바늘이 파란색 칸에 들어왔을 때 누르세요. 빗나가면 빼빼로가 부러져요.', '指針進到藍色區域時按下去。沒對準的話，pepero 會斷掉。')}</div>`;
+    <div class="sub">${L('바늘이 파란색 칸에 들어왔을 때 누르세요. ♥가 있으면 빗나가도 2번까지 괜찮아요.', '指針進到藍色區域時按下去。有 ♥ 的話，沒對準也能撐 2 次。')}</div>`;
   $('act').innerHTML = 'START';
   $('hint').innerHTML = best !== null ? L(`최고 기록 ${best.toFixed(1)}cm`, `最佳紀錄 ${best.toFixed(1)}cm`) : '';
 }
 function start() {
-  mode = 'play'; bites = 0; pos = 0; dir = 1; perfects = 0; secret = false;
+  mode = 'play'; bites = 0; pos = 0; dir = 1; perfects = 0; secret = false; lives = LIVES;
   $('bridge').classList.remove('snap'); renderScene(); newZone();
   $('box').innerHTML = `<div class="tag plain">READY</div><div class="line">${L('두근두근……', '撲通撲通……')}</div>`;
   $('act').innerHTML = L('냠!', '咬！');
@@ -241,6 +244,13 @@ function bite() {
     $('box').innerHTML = `<div class="tag">${WHO[who]}</div><div class="line">${L(ko, zh)}</div>`;
     if (bites >= BITES) { mode = 'wait'; hearts(secret ? 24 : 12); setTimeout(() => finish(true), 1300); }
     else newZone();
+  } else if (lives > 0) {
+    lives--;
+    renderScene();
+    pop('SAVE! ♥');
+    $('stage').classList.add('shake'); setTimeout(() => $('stage').classList.remove('shake'), 400);
+    $('box').innerHTML = `<div class="tag plain">SAVE</div><div class="line">${L('휴, 아슬아슬했다!', '呼，好險！')}</div><div class="sub">${L(`남은 기회 ${lives}번`, `還剩 ${lives} 次機會`)}</div>`;
+    newZone();
   } else {
     mode = 'wait';
     pop('MISS…');
