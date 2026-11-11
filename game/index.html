@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>빼빼로 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#7cc8f2;--pink-d:#2f95d1;--pink-l:#dff1fc;--ink:#2b3a55;--cream:#fbfdff;--sub:#5f7a94;--choco:#5f4039;--choco-d:#33221f}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body{
+  background-color:#c9e8f9;
+  background-image:radial-gradient(circle at 18px 18px,#fff 0 4px,transparent 5px),radial-gradient(circle at 58px 52px,#9fd4f3 0 6px,transparent 7px);
+  background-size:80px 80px;color:var(--ink);
+  font-family:"Noto Sans KR","Noto Sans TC",sans-serif;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.win{margin:auto;width:100%;max-width:440px;background:var(--cream);border:4px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.bar{background:linear-gradient(90deg,var(--pink),#a9dcf7);color:#fff;font-family:"Press Start 2P",monospace;font-size:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid var(--ink)}
+.bar-btns{display:flex;gap:6px;align-items:center}
+.bar button{background:#fff;color:var(--ink);border:2px solid var(--ink);font:inherit;font-size:8px;padding:4px 6px;cursor:pointer}
+.bar button.off{background:var(--pink-l);color:var(--sub)}
+
+/* stage: the scene is laid out in image pixels (1430 x 925) and scaled to fit */
+.stage{position:relative;overflow:hidden;border-bottom:4px solid var(--ink);cursor:pointer}
+.scene{position:absolute;left:0;top:0;width:1460px;height:910px;transform-origin:0 0;background:linear-gradient(#fff6d8,#cfeafa)}
+.half{position:absolute;top:0;height:910px;mix-blend-mode:multiply;transition:transform .28s cubic-bezier(.3,1.4,.5,1),opacity .5s}
+#left{left:0;width:745px}
+#right{left:745px;width:715px}
+#kiss{position:absolute;left:-40px;top:-50px;width:1536px;mix-blend-mode:multiply;opacity:0;transition:opacity .5s}
+.scene.done #kiss{opacity:1}
+.scene.done .half,.scene.done #bridge{opacity:0}
+#bridge::after{content:"";position:absolute;right:0;top:3px;bottom:4px;width:34px;background:#e9c58f}
+#bridge{position:absolute;top:617px;height:24px;border-radius:6px;overflow:hidden;background:linear-gradient(var(--choco-d) 0 3px,#6f4d47 3px 11px,var(--choco) 11px 20px,var(--choco-d) 20px);transition:left .28s cubic-bezier(.3,1.4,.5,1),width .28s cubic-bezier(.3,1.4,.5,1)}
+#bridge.snap{transition:none;animation:snap .7s ease-in forwards}
+@keyframes snap{to{transform:translateY(420px) rotate(24deg);opacity:0}}
+.stage.shake .scene{animation:shake .35s}
+@keyframes shake{25%{margin-left:-6px}50%{margin-left:6px}75%{margin-left:-3px}}
+.pop{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-family:"Press Start 2P";font-size:13px;color:var(--pink-d);text-shadow:2px 2px 0 #fff;opacity:0;pointer-events:none;white-space:nowrap}
+.pop.show{animation:pop .7s ease-out}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}25%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-16px) scale(1)}}
+.heart{position:absolute;bottom:30%;font-size:20px;color:#e0245e;pointer-events:none;animation:rise 1.4s ease-out forwards}
+@keyframes rise{to{transform:translateY(-140px) scale(1.5);opacity:0}}
+
+.hud{padding:10px 14px;border-bottom:4px solid var(--ink);background:#eef8fe}
+.hud-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:8px}
+.num{font-family:"Press Start 2P";font-size:11px;color:var(--pink-d)}
+.track{position:relative;height:30px;background:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);overflow:hidden;cursor:pointer}
+.zone{position:absolute;top:0;bottom:0;background:#b9e0f7}
+.zone i{position:absolute;top:0;bottom:0;left:33.3%;width:33.4%;background:var(--pink-d)}
+.ptr{position:absolute;top:-2px;bottom:-2px;width:6px;margin-left:-3px;background:var(--ink)}
+
+.box{padding:14px 16px 6px;min-height:118px}
+.tag{display:inline-flex;align-items:center;background:#fff;color:var(--ink);border:2px dashed var(--ink);padding:4px 8px;margin-bottom:8px;font-size:11px;font-weight:700}
+.tag.plain{background:var(--ink);color:#fff;border:2px solid var(--ink);font-family:"Press Start 2P";font-size:9px;font-weight:400}
+.line{font-size:18px;line-height:1.5;font-weight:900;word-break:keep-all;min-height:1.5em}
+.sub{font-size:13px;line-height:1.6;color:var(--sub);margin-top:4px}
+.big{font-family:"Press Start 2P";font-size:26px;color:var(--pink-d);margin:4px 0 8px}
+.big small{font-size:12px}
+.foot{padding:8px 16px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hint{font-size:11px;color:var(--sub)}
+.btn{background:var(--pink-d);color:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font-family:"Press Start 2P","Noto Sans KR","Noto Sans TC",sans-serif;font-size:12px;font-weight:900;padding:12px 16px;cursor:pointer}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.wide{flex:1;font-size:15px;padding:14px 16px}
+
+body.lang-ko .lz{display:none}
+body.lang-zh .lk{display:none}
+#cg{position:fixed;inset:0;background:rgba(201,232,249,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;z-index:10;cursor:pointer}
+#cg img{max-width:100%;max-height:72vh;border:4px solid var(--ink);box-shadow:6px 6px 0 var(--ink);background:#fff}
+#cg .cgtxt{font-family:"Press Start 2P";font-size:9px;color:var(--ink);background:#fff;border:2px solid var(--ink);padding:6px 8px}
+[hidden]{display:none !important}
+</style>
+</head>
+<body class="lang-ko">
+<div class="win" id="win">
+  <div class="bar">
+    <span>🥢</span>
+    <div class="bar-btns">
+      <button id="langBtn" type="button">KO</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="scene" id="scene">
+      <img class="half" id="left" src="img/left.png" alt="" draggable="false">
+      <img class="half" id="right" src="img/right.png" alt="" draggable="false">
+      <div id="bridge"></div>
+      <img id="kiss" src="img/kiss.png" alt="" draggable="false">
+    </div>
+    <div class="pop" id="pop"></div>
+  </div>
+
+  <div class="hud">
+    <div class="hud-top">
+      <span><span class="lk">남은 빼빼로</span><span class="lz">剩下的 pepero</span></span>
+      <span class="num"><span id="cm">13.0</span>cm</span>
+    </div>
+    <div class="track" id="track">
+      <div class="zone" id="zone"><i></i></div>
+      <div class="ptr" id="ptr"></div>
+    </div>
+  </div>
+
+  <div class="box" id="box"></div>
+
+  <div class="foot">
+    <span class="hint" id="hint"></span>
+    <button id="act" class="btn wide" type="button"></button>
+  </div>
+</div>
+
+<div id="cg" hidden>
+  <img id="cgimg" alt="">
+  <div class="cgtxt">TAP TO CONTINUE</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const L = (ko, zh) => `<span class="lk">${ko}</span><span class="lz">${zh}</span>`;
+
+// ---------- settings ----------
+const BITES = 10;          // 咬幾口就吃完
+const OFF_START = 105, OFF_END = -68;   // 兩人各自往外／往內移動的距離（圖片像素）
+const CM_START = 13, CM_END = 0.5;
+
+// 每咬一口的心裡話：[誰, 韓文, 中文]
+const LINES = [
+  ['mi', '(……가까워.)', '(……好近。)'],
+  ['hu', '(도망가지 마.)', '(不要逃走喔。)'],
+  ['mi', '(눈을 어디에 둬야 하지.)', '(眼睛該看哪裡。)'],
+  ['hu', '(눈 마주쳤다!)', '(對到眼了！)'],
+  ['mi', '(심장 소리 들리면 어떡하지.)', '(心跳聲被聽到怎麼辦。)'],
+  ['hu', '(귀 빨개졌네.)', '(耳朵紅了耶。)'],
+  ['mi', '(피하고 싶지 않아.)', '(不想躲開。)'],
+  ['hu', '(떨려……)', '(好緊張……)'],
+  ['mi', '(……조금만 더.)', '(……再一點點。)'],
+  ['mi', '(……빼빼로 메이트.)', '(……Pepero Mate。)'],
+];
+const WHO = { hu: L('후후 OS', '熏熏 內心'), mi: L('만재 OS', '財財 內心') };
+
+// ---------- state ----------
+let mode = 'title', bites = 0, pos = 0, dir = 1, zone = { c: .5, w: .34 }, last = 0, best = null;
+try { const b = localStorage.getItem('pepero-bite-best'); if (b !== null) best = +b; } catch (e) {}
+
+const off = () => OFF_START + (OFF_END - OFF_START) * Math.min(1, bites / (BITES - 1));
+const cm = () => (CM_END + (CM_START - CM_END) * (1 - bites / BITES)).toFixed(1);
+const sweep = () => 1.45 - 0.85 * (bites / (BITES - 1));   // 指針跑一趟的秒數，越來越快
+
+// ---------- rendering ----------
+function fit() {
+  const w = $('stage').clientWidth, s = w / 1460;
+  $('scene').style.transform = `scale(${s})`;
+  $('stage').style.height = Math.round(910 * s) + 'px';
+}
+function renderScene() {
+  const o = off();
+  $('left').style.transform = `translateX(${-o}px)`;
+  $('right').style.transform = `translateX(${o}px)`;
+  const b = $('bridge');
+  b.style.left = (637 - o) + 'px';
+  b.style.width = (228 + 2 * o) + 'px';
+  $('scene').classList.toggle('done', bites >= BITES);
+  $('cm').textContent = cm();
+}
+function renderZone() {
+  $('zone').style.left = ((zone.c - zone.w / 2) * 100) + '%';
+  $('zone').style.width = (zone.w * 100) + '%';
+}
+function newZone() {
+  zone.w = 0.34 - 0.2 * (bites / (BITES - 1));
+  let c;
+  do { c = zone.w / 2 + 0.04 + Math.random() * (1 - zone.w - 0.08); } while (Math.abs(c - pos) < zone.w / 2 + 0.12);
+  zone.c = c;
+  renderZone();
+}
+function pop(text) {
+  const p = $('pop'); p.textContent = text; p.classList.remove('show'); void p.offsetWidth; p.classList.add('show');
+}
+function hearts(n) {
+  for (let i = 0; i < n; i++) setTimeout(() => {
+    const h = document.createElement('span'); h.className = 'heart'; h.textContent = '♥';
+    h.style.left = (38 + Math.random() * 24) + '%';
+    $('stage').appendChild(h); setTimeout(() => h.remove(), 1400);
+  }, i * 110);
+}
+function rank() {
+  if (bites >= BITES) return L('빼빼로 메이트 ♥', 'Pepero Mate ♥');
+  if (bites >= 8) return L('거의 다 왔는데!', '就差一點點！');
+  if (bites >= 4) return L('썸 타는 중', '曖昧中');
+  return L('아직 어색한 사이', '還有點尷尬');
+}
+
+function showTitle() {
+  mode = 'title'; bites = 0; pos = 0;
+  $('bridge').classList.remove('snap'); renderScene(); newZone();
+  $('box').innerHTML = `<div class="tag plain">HOW TO</div>
+    <div class="line">${L('타이밍 맞춰 한 입씩!', '抓準時機，一口一口咬！')}</div>
+    <div class="sub">${L('바늘이 파란색 칸에 들어왔을 때 누르세요. 빗나가면 빼빼로가 부러져요.', '指針進到藍色區域時按下去。沒對準的話，pepero 會斷掉。')}</div>`;
+  $('act').innerHTML = 'START';
+  $('hint').innerHTML = best !== null ? L(`최고 기록 ${best.toFixed(1)}cm`, `最佳紀錄 ${best.toFixed(1)}cm`) : '';
+}
+function start() {
+  mode = 'play'; bites = 0; pos = 0; dir = 1;
+  $('bridge').classList.remove('snap'); renderScene(); newZone();
+  $('box').innerHTML = `<div class="tag plain">READY</div><div class="line">${L('두근두근……', '撲通撲通……')}</div>`;
+  $('act').innerHTML = L('냠!', '咬！');
+  $('hint').innerHTML = '';
+}
+function finish(win) {
+  mode = 'over';
+  const v = +cm();
+  if (best === null || v < best) { best = v; try { localStorage.setItem('pepero-bite-best', String(v)); } catch (e) {} }
+  $('box').innerHTML = `<div class="tag plain">${win ? 'CLEAR' : 'RESULT'}</div>
+    <div class="big">${v.toFixed(1)}<small>cm</small></div>
+    <div class="line">${rank()}</div>
+    <div class="sub">${win ? L('끝까지 다 먹었어요!', '成功吃到最後了！') : L(`${bites}입 성공. 다시 도전해 볼까요?`, `成功咬了 ${bites} 口。要再挑戰一次嗎？`)}</div>`;
+  $('act').innerHTML = 'RETRY';
+  $('hint').innerHTML = L(`최고 기록 ${best.toFixed(1)}cm`, `最佳紀錄 ${best.toFixed(1)}cm`);
+}
+
+// ---------- input ----------
+function bite() {
+  if (mode !== 'play') return;
+  const d = Math.abs(pos - zone.c);
+  if (d <= zone.w / 2) {
+    const perfect = d <= zone.w / 6;
+    bites++;
+    renderScene();
+    pop(perfect ? 'PERFECT ♥' : 'NICE!');
+    if (perfect) hearts(2);
+    const [who, ko, zh] = LINES[bites - 1];
+    $('box').innerHTML = `<div class="tag">${WHO[who]}</div><div class="line">${L(ko, zh)}</div>`;
+    if (bites >= BITES) { mode = 'wait'; hearts(12); setTimeout(() => finish(true), 1300); }
+    else newZone();
+  } else {
+    mode = 'wait';
+    pop('MISS…');
+    $('bridge').classList.add('snap');
+    $('stage').classList.add('shake'); setTimeout(() => $('stage').classList.remove('shake'), 400);
+    $('box').innerHTML = `<div class="tag plain">OOPS</div><div class="line">${L('뚝! 빼빼로가 부러졌어요.', '啪！pepero 斷掉了。')}</div>`;
+    setTimeout(() => { $('cgimg').src = 'img/fail.png'; $('cg').hidden = false; }, 800);
+  }
+}
+function action() {
+  if (mode === 'title' || mode === 'over') start();
+  else bite();
+}
+$('act').addEventListener('pointerdown', e => { e.preventDefault(); action(); });
+$('stage').addEventListener('pointerdown', () => { if (mode === 'play') bite(); });
+$('track').addEventListener('pointerdown', () => { if (mode === 'play') bite(); });
+document.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); action(); } });
+$('cg').addEventListener('click', () => { $('cg').hidden = true; finish(false); });
+
+// ---------- loop ----------
+function loop(t) {
+  const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
+  if (mode === 'play' || mode === 'title') {
+    pos += dir * dt / (mode === 'title' ? 1.45 : sweep());
+    if (pos >= 1) { pos = 1; dir = -1; } else if (pos <= 0) { pos = 0; dir = 1; }
+    $('ptr').style.left = (pos * 100) + '%';
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---------- language ----------
+let LANG = 'ko';
+$('langBtn').onclick = () => { LANG = LANG === 'ko' ? 'zh' : 'ko'; document.body.className = 'lang-' + LANG; $('langBtn').textContent = LANG === 'ko' ? 'KO' : '中'; };
+
+window.addEventListener('resize', fit);
+fit(); showTitle(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
