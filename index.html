@@ -87,7 +87,7 @@ body.lang-zh .zh.os::before{content:"♥ ";color:var(--pink-d)}
   <div class="bar">
     <span>🥢</span>
     <div class="bar-btns">
-      <button id="sndBtn" type="button">♪ ON</button>
+      <button id="sndBtn" type="button">♪ OFF</button>
       <button id="langBtn" type="button">KO</button>
       <button id="menuBtn" type="button" hidden>MENU</button>
     </div>
@@ -417,7 +417,7 @@ $('cg').onclick = () => {
 // ============ BGM ============
 const bgm = new Audio('audio/bgm.mp3');
 bgm.loop = true; bgm.volume = 0.35;
-let musicOn = true;
+let musicOn = false;
 function playBgm(){ if(musicOn && bgm.paused) bgm.play().catch(()=>{}); }
 function renderSnd(){
   const b=$('sndBtn'); b.textContent = musicOn ? '♪ ON' : '♪ OFF';
