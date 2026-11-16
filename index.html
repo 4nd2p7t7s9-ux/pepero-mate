@@ -136,12 +136,13 @@ const ANGRY = 'img/angry.png';  // 0–3 根結局 CG
 const MID   = 'img/mid.png';    // 4–7 根結局 CG
 const clamp = n => Math.max(0, Math.min(8, n));
 
+const talkKo = t => t.replace(/([^.…])\.(?=\s|$|\)|<|”|」)/g, '$1').replace(/,\s*/g, ' ');   // 韓文對話不用逗號、句號；旁白照常
 const N  = (zh,ko) => ({s:'n',   zh, ko});       // 旁白
-const H  = (zh,ko) => ({s:'hu',  zh, ko});       // 후후 說話
-const M  = (zh,ko) => ({s:'mi',  zh, ko});       // 만재 說話
-const HO = (zh,ko) => ({s:'hos', zh, ko});       // 후후 內心
-const MO = (zh,ko) => ({s:'mos', zh, ko});       // 만재 內心
-const C  = (d,zh,ko,reply) => ({d, zh, ko, reply}); // 選項：d = 2 / 1 / 0 根
+const H  = (zh,ko) => ({s:'hu',  zh, ko: talkKo(ko)});       // 후후 說話
+const M  = (zh,ko) => ({s:'mi',  zh, ko: talkKo(ko)});       // 만재 說話
+const HO = (zh,ko) => ({s:'hos', zh, ko: talkKo(ko)});       // 후후 內心
+const MO = (zh,ko) => ({s:'mos', zh, ko: talkKo(ko)});       // 만재 內心
+const C  = (d,zh,ko,reply) => ({d, zh, ko: talkKo(ko), reply}); // 選項：d = 2 / 1 / 0 根
 
 // ============ 劇本 ============
 const STORIES = {
